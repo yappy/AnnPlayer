@@ -1,9 +1,14 @@
 package io.github.yappy.annplayer;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -14,6 +19,9 @@ import java.io.File;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Music dir から音声リストを読み出す
+    private static final int PERM_REQ_READ_MUSIC_LIST = 1;
 
     private File[] musicFiles;
     private Button[] playListButtons;
@@ -35,7 +43,20 @@ public class MainActivity extends AppCompatActivity {
             showToast("stop");
         });
 
-        loadSdCard();
+        loadListFromSdCard();
+    }
+
+    // パーミッション要求の結果
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERM_REQ_READ_MUSIC_LIST: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    loadListFromSdCardBh();
+                }
+                break;
+            }
+        }
     }
 
     // Toast (short) を表示する
@@ -44,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // SD カードの内容を確認して UI に反映する
-    private void loadSdCard() {
+    private void loadListFromSdCard() {
         // マウント状態確認
         String state = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
@@ -52,9 +73,26 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // 外部ストレージの read permission を許可されてから後半処理する
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            // ダイアログを出して許可を得る (出ない場合もある)
+            // 許可されたら onRequestPermissionsResult コールバックから loadListFromSdCardBh() を呼ぶ
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERM_REQ_READ_MUSIC_LIST);
+            return;
+        }
+        else {
+            // 許可されているので普通に後半を呼ぶ
+            loadListFromSdCardBh();
+        }
+    }
+
+    // 後半 (bottom half)
+    private void loadListFromSdCardBh() {
         // 共有 Music ディレクトリ
         File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        File[] files = musicDir.listFiles(/*(f) -> f.isFile() && f.getName().endsWith(".mp3")*/);
+        File[] files = musicDir.listFiles((f) -> f.isFile() && f.getName().endsWith(".mp3"));
         // エラーの場合 null (おそらくパーミッションエラー)
         if (files == null) {
             showToast("Read music dir error");
@@ -63,9 +101,11 @@ public class MainActivity extends AppCompatActivity {
         Arrays.sort(files);
         musicFiles = files;
 
+        // UI に反映
         initializeListArea();
     }
 
+    // リスト UI を更新初期化する
     private void initializeListArea() {
         LinearLayout area = findViewById(R.id.list_area);
         area.removeAllViews();
@@ -74,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < playListButtons.length; i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
-            button.setText("Sound " + i);
+            button.setText(musicFiles[i].getName());
             button.setTag(i);
             button.setOnClickListener((view) -> {
                 int n = (Integer) view.getTag();
@@ -84,7 +124,12 @@ public class MainActivity extends AppCompatActivity {
             playListButtons[i] = button;
         }
 
-        onSelectList(-1);
+        if (musicFiles.length > 0) {
+            onSelectList(0);
+        }
+        else {
+            onSelectList(-1);
+        }
     }
 
     private void onSelectList(int n) {
