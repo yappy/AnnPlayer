@@ -1,6 +1,8 @@
 package io.github.yappy.annplayer;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
@@ -10,6 +12,7 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -68,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 loadListFromSdCard();
                 return true;
             case R.id.menu_about:
+                new AboutDialog().show(getSupportFragmentManager(), "About");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -208,6 +212,20 @@ public class MainActivity extends AppCompatActivity {
         }
         if (playedIndex >= 0) {
             playListButtons[playedIndex].setBackgroundColor(Color.rgb(255, 0, 0));
+        }
+    }
+
+    // バージョン情報ダイアログ
+    public static class AboutDialog extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(BuildConfig.VERSION_NAME)
+                    .setPositiveButton("OK", (dialog, id) -> {
+                        // OK
+                    });
+            return builder.create();
         }
     }
 

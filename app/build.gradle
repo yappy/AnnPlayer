@@ -1,5 +1,23 @@
 apply plugin: 'com.android.application'
 
+def versionDesc() {
+    def text = 'No version info\n'
+    try {
+        def proc = 'git describe --always --tags --dirty'.execute()
+        proc.waitFor()
+        if (proc.exitValue() == 0) {
+            text = proc.text.trim()
+            println('Version info: git-describe = ' + text.trim())
+        } else {
+            logger.warn('Warning: git describe failed.')
+        }
+    } catch (e) {
+        logger.warn('Warning: git command failed.')
+        logger.warn('Warning: Ensure that git command is available.')
+    }
+    text
+}
+
 android {
     signingConfigs {
         release {
@@ -19,8 +37,9 @@ android {
         minSdkVersion 15
         targetSdkVersion 28
         versionCode 1
-        versionName "alpha-1"
+        versionName versionDesc()
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
     }
     buildTypes {
         release {
