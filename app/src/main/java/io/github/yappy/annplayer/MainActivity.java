@@ -3,6 +3,8 @@ package io.github.yappy.annplayer;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -23,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     // Music dir から音声リストを読み出す
     private static final int PERM_REQ_READ_MUSIC_LIST = 1;
 
+    private MediaPlayer mediaPlayer = null;
     private File[] musicFiles;
     private Button[] playListButtons;
     private int selectedIndex = -1;
@@ -36,10 +39,12 @@ public class MainActivity extends AppCompatActivity {
         // 再生停止ボタンのクリックイベント設定
         FloatingActionButton playButton = findViewById(R.id.fab1);
         playButton.setOnClickListener((view) -> {
+            play(selectedIndex);
             showToast("play " + selectedIndex);
         });
         FloatingActionButton stopButton = findViewById(R.id.fab2);
         stopButton.setOnClickListener((view) -> {
+            stop();
             showToast("stop");
         });
 
@@ -62,6 +67,19 @@ public class MainActivity extends AppCompatActivity {
     // Toast (short) を表示する
     private void showToast(String msg) {
         Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private void play(int n) {
+        stop();
+        mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
+        mediaPlayer.start();
+    }
+
+    private void stop() {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 
     // SD カードの内容を確認して UI に反映する
