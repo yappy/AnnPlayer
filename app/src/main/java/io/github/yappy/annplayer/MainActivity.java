@@ -96,6 +96,10 @@ public class MainActivity extends AppCompatActivity {
         stop();
 
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
+        if (mediaPlayer == null) {
+            showToast("An error occurred");
+            return;
+        }
         mediaPlayer.setOnCompletionListener(mp -> {
             selectedIndex = (playedIndex + 1) % musicFiles.length;
             playedIndex = -1;
