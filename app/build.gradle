@@ -1,21 +1,32 @@
 apply plugin: 'com.android.application'
 
-def versionDesc() {
-    def text = 'No version info\n'
+def gitExec(cmd, fallback) {
+    def text = fallback
     try {
-        def proc = 'git describe --always --tags --dirty'.execute()
+        def proc = ('git ' + cmd).execute()
         proc.waitFor()
         if (proc.exitValue() == 0) {
             text = proc.text.trim()
-            println('Version info: git-describe = ' + text.trim())
         } else {
-            logger.warn('Warning: git describe failed.')
+            logger.warn('Warning: git failed.')
         }
     } catch (e) {
         logger.warn('Warning: git command failed.')
         logger.warn('Warning: Ensure that git command is available.')
     }
     text
+}
+
+def versionDesc() {
+    gitExec('describe --always --tags --dirty', 'No version info')
+}
+
+def gitHash() {
+    gitExec('show --no-patch --pretty=format:%H', 'No git hash info')
+}
+
+def gitDate() {
+    gitExec('show --no-patch --pretty=format:%ai', 'No git date info')
 }
 
 android {
@@ -38,6 +49,8 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName versionDesc()
+        buildConfigField 'String', 'GIT_HASH', "\"${gitHash()}\""
+        buildConfigField 'String', 'GIT_DATE', "\"${gitDate()}\""
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }

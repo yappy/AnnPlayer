@@ -219,9 +219,15 @@ public class MainActivity extends AppCompatActivity {
     public static class AboutDialog extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction
+            StringBuilder text = new StringBuilder();
+            text.append(BuildConfig.VERSION_NAME);
+            text.append("\n\n");
+            text.append(BuildConfig.GIT_DATE);
+            text.append("\n");
+            text.append(BuildConfig.GIT_HASH);
+
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(BuildConfig.VERSION_NAME)
+            builder.setMessage(text.toString())
                     .setPositiveButton("OK", (dialog, id) -> {
                         // OK
                     });
