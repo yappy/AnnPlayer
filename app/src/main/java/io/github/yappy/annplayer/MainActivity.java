@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton playButton = findViewById(R.id.fab1);
         playButton.setOnClickListener((view) -> {
-            showToast("play " + view.getTag());
+            showToast("play " + selectedIndex);
         });
         FloatingActionButton stopButton = findViewById(R.id.fab2);
         stopButton.setOnClickListener((view) -> {
