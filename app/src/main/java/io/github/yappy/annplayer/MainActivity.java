@@ -41,12 +41,10 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton playButton = findViewById(R.id.fab1);
         playButton.setOnClickListener((view) -> {
             play(selectedIndex);
-            showToast("play " + selectedIndex);
         });
         FloatingActionButton stopButton = findViewById(R.id.fab2);
         stopButton.setOnClickListener((view) -> {
             stop();
-            showToast("stop");
         });
 
         loadListFromSdCard();
@@ -72,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void play(int n) {
         stop();
+
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
-        playedIndex = n;
         mediaPlayer.setOnCompletionListener(mp -> {
             selectedIndex = (playedIndex + 1) % musicFiles.length;
             playedIndex = -1;
@@ -86,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
         mediaPlayer.start();
+
+        playedIndex = n;
         updateButtonColors();
     }
 
@@ -95,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer = null;
         }
         playedIndex = -1;
+        updateButtonColors();
     }
 
     // SD カードの内容を確認して UI に反映する
