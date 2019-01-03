@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Announce Player</string>
+    <string name="copyright">Copyright (C) yappy</string>
+    <!-- app_name, copyright, VERSION_NAME, GIT_DATE, GIT_HASH -->
+    <string name="about">"%s%n%n%s%n%nVersion: %s%n%s%n%s"</string>
 </resources>

@@ -1,7 +1,10 @@
 package io.github.yappy.annplayer;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -10,8 +13,12 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -50,6 +57,28 @@ public class MainActivity extends AppCompatActivity {
         loadListFromSdCard();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                stop();
+                loadListFromSdCard();
+                return true;
+            case R.id.menu_about:
+                new AboutDialog().show(getSupportFragmentManager(), "About");
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     // パーミッション要求の結果
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -72,6 +101,10 @@ public class MainActivity extends AppCompatActivity {
         stop();
 
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
+        if (mediaPlayer == null) {
+            showToast("An error occurred");
+            return;
+        }
         mediaPlayer.setOnCompletionListener(mp -> {
             selectedIndex = (playedIndex + 1) % musicFiles.length;
             playedIndex = -1;
@@ -180,6 +213,27 @@ public class MainActivity extends AppCompatActivity {
         }
         if (playedIndex >= 0) {
             playListButtons[playedIndex].setBackgroundColor(Color.rgb(255, 0, 0));
+        }
+    }
+
+    // バージョン情報ダイアログ
+    public static class AboutDialog extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Resources res = getResources();
+            String text = res.getString(R.string.about,
+                    res.getString(R.string.app_name),
+                    res.getString(R.string.copyright),
+                    BuildConfig.VERSION_NAME,
+                    BuildConfig.GIT_DATE,
+                    BuildConfig.GIT_HASH);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage(text)
+                    .setPositiveButton("OK", (dialog, id) -> {
+                        // OK
+                    });
+            return builder.create();
         }
     }
 
