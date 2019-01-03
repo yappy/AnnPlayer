@@ -95,12 +95,25 @@ public class MainActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setMessage("Create a directory and files for this app?")
                     .setPositiveButton("OK", (dialog, id) -> {
-                        // OK
+                        new SdCardInitFinishDialog().show(getFragmentManager(), "SdInitFinish");
                     })
                     .setNegativeButton("Cancel", (dialog, id) -> {
                         // Cancel
                     });
-            // Create the AlertDialog object and return it
+            return builder.create();
+        }
+    }
+
+    // SD カードにディレクトリを作りました確認ダイアログ
+    public static class SdCardInitFinishDialog extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the Builder class for convenient dialog construction
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setMessage("Directory {???} is created.")
+                    .setPositiveButton("OK", (dialog, id) -> {
+                        // OK
+                    });
             return builder.create();
         }
     }
