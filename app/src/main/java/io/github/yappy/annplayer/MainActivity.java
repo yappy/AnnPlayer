@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private File[] musicFiles;
     private Button[] playListButtons;
     private int selectedIndex = -1;
+    private int playedIndex = -1;
 
     // 初期化時に一度だけ呼ばれる
     @Override
@@ -72,7 +73,20 @@ public class MainActivity extends AppCompatActivity {
     private void play(int n) {
         stop();
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
+        playedIndex = n;
+        mediaPlayer.setOnCompletionListener(mp -> {
+            selectedIndex = (playedIndex + 1) % musicFiles.length;
+            playedIndex = -1;
+            updateButtonColors();
+        });
+        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+            playedIndex = -1;
+            updateButtonColors();
+            showToast("An error occurred");
+            return true;
+        });
         mediaPlayer.start();
+        updateButtonColors();
     }
 
     private void stop() {
@@ -80,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.release();
             mediaPlayer = null;
         }
+        playedIndex = -1;
     }
 
     // SD カードの内容を確認して UI に反映する
@@ -152,12 +167,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void onSelectList(int n) {
         selectedIndex = n;
+        updateButtonColors();
+    }
 
+    private void updateButtonColors() {
         for (Button button : playListButtons) {
             button.setBackgroundColor(android.R.drawable.btn_default);
         }
-        if (n >= 0) {
-            playListButtons[n].setBackgroundColor(Color.RED);
+        if (selectedIndex >= 0) {
+            playListButtons[selectedIndex].setBackgroundColor(Color.rgb(255, 128, 128));
+        }
+        if (playedIndex >= 0) {
+            playListButtons[playedIndex].setBackgroundColor(Color.rgb(255, 0, 0));
         }
     }
 
