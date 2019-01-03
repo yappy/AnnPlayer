@@ -1,22 +1,23 @@
 package io.github.yappy.annplayer;
 
-import android.app.Dialog;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.io.File;
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity {
 
-    private int selectedIndex = -1;
+    private File[] musicFiles;
     private Button[] playListButtons;
+    private int selectedIndex = -1;
 
     // 初期化時に一度だけ呼ばれる
     @Override
@@ -44,23 +45,33 @@ public class MainActivity extends AppCompatActivity {
 
     // SD カードの内容を確認して UI に反映する
     private void loadSdCard() {
+        // マウント状態確認
         String state = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
             showToast("SD card is not found");
             return;
         }
-        new SdCardInitDialog().show(getSupportFragmentManager(), "SdInit");
+
+        // 共有 Music ディレクトリ
+        File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+        File[] files = musicDir.listFiles(/*(f) -> f.isFile() && f.getName().endsWith(".mp3")*/);
+        // エラーの場合 null (おそらくパーミッションエラー)
+        if (files == null) {
+            showToast("Read music dir error");
+            return;
+        }
+        Arrays.sort(files);
+        musicFiles = files;
+
         initializeListArea();
     }
 
     private void initializeListArea() {
-        final int PLAY_LIST_NUM = 100;
-
         LinearLayout area = findViewById(R.id.list_area);
         area.removeAllViews();
-        playListButtons = new Button[PLAY_LIST_NUM];
+        playListButtons = new Button[musicFiles.length];
 
-        for (int i = 0; i < PLAY_LIST_NUM; i++) {
+        for (int i = 0; i < playListButtons.length; i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
             button.setText("Sound " + i);
@@ -84,37 +95,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if (n >= 0) {
             playListButtons[n].setBackgroundColor(Color.RED);
-        }
-    }
-
-    // SD カードにディレクトリを作る確認ダイアログ
-    public static class SdCardInitDialog extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage("Create a directory and files for this app?")
-                    .setPositiveButton("OK", (dialog, id) -> {
-                        new SdCardInitFinishDialog().show(getFragmentManager(), "SdInitFinish");
-                    })
-                    .setNegativeButton("Cancel", (dialog, id) -> {
-                        // Cancel
-                    });
-            return builder.create();
-        }
-    }
-
-    // SD カードにディレクトリを作りました確認ダイアログ
-    public static class SdCardInitFinishDialog extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the Builder class for convenient dialog construction
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage("Directory {???} is created.")
-                    .setPositiveButton("OK", (dialog, id) -> {
-                        // OK
-                    });
-            return builder.create();
         }
     }
 
