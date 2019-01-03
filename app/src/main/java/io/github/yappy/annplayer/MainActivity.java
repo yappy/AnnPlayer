@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -219,15 +220,16 @@ public class MainActivity extends AppCompatActivity {
     public static class AboutDialog extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            StringBuilder text = new StringBuilder();
-            text.append(BuildConfig.VERSION_NAME);
-            text.append("\n\n");
-            text.append(BuildConfig.GIT_DATE);
-            text.append("\n");
-            text.append(BuildConfig.GIT_HASH);
+            Resources res = getResources();
+            String text = res.getString(R.string.about,
+                    res.getString(R.string.app_name),
+                    res.getString(R.string.copyright),
+                    BuildConfig.VERSION_NAME,
+                    BuildConfig.GIT_DATE,
+                    BuildConfig.GIT_HASH);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(text.toString())
+            builder.setMessage(text)
                     .setPositiveButton("OK", (dialog, id) -> {
                         // OK
                     });
