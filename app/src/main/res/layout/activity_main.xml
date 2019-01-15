@@ -5,24 +5,25 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- ルート 内容物は重ねて表示 -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- 曲選択ボタンを入れる縦スクロール可能ビュー  -->
         <ScrollView
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
+            <!-- この縦リニアレイアウトにプログラムから入れる -->
             <LinearLayout
                 android:id="@+id/list_area"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             </LinearLayout>
-
         </ScrollView>
 
         <!--
