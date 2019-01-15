@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private File[] musicFiles;
     private Button[] playListButtons;
     private int selectedIndex = -1;
-    private int playedIndex = -1;
+    private int playingIndex = -1;
 
     // 初期化時に一度だけ呼ばれる
     @Override
@@ -48,7 +48,9 @@ public class MainActivity extends AppCompatActivity {
         // 再生停止ボタンのクリックイベント設定
         FloatingActionButton playButton = findViewById(R.id.fab1);
         playButton.setOnClickListener((view) -> {
-            play(selectedIndex);
+            if (selectedIndex >= 0) {
+                play(selectedIndex);
+            }
         });
         FloatingActionButton stopButton = findViewById(R.id.fab2);
         stopButton.setOnClickListener((view) -> {
@@ -98,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
     }
 
+    // 再生ボタンクリックイベント
+    // 0 <= n < list size
     private void play(int n) {
         stop();
 
@@ -106,30 +110,33 @@ public class MainActivity extends AppCompatActivity {
             showToast("An error occurred");
             return;
         }
+        // 再生完了イベント
         mediaPlayer.setOnCompletionListener(mp -> {
-            selectedIndex = (playedIndex + 1) % musicFiles.length;
-            playedIndex = -1;
+            selectedIndex = (playingIndex + 1) % musicFiles.length;
+            playingIndex = -1;
             updateButtonColors();
             scrollToSelected();
         });
+        // エラー終了イベント
         mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-            playedIndex = -1;
+            playingIndex = -1;
             updateButtonColors();
             showToast("An error occurred");
             return true;
         });
         mediaPlayer.start();
 
-        playedIndex = n;
+        playingIndex = n;
         updateButtonColors();
     }
 
+    // 停止ボタンクリックイベント
     private void stop() {
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
         }
-        playedIndex = -1;
+        playingIndex = -1;
         updateButtonColors();
     }
 
@@ -208,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         scrollToSelected();
     }
 
-    // selectedIndex と playedIndex をボタンの色に反映する
+    // selectedIndex と playingIndex をボタンの色に反映する
     private void updateButtonColors() {
         for (Button button : playListButtons) {
             button.setBackgroundColor(android.R.drawable.btn_default);
@@ -216,8 +223,8 @@ public class MainActivity extends AppCompatActivity {
         if (selectedIndex >= 0) {
             playListButtons[selectedIndex].setBackgroundColor(Color.rgb(255, 128, 128));
         }
-        if (playedIndex >= 0) {
-            playListButtons[playedIndex].setBackgroundColor(Color.rgb(255, 0, 0));
+        if (playingIndex >= 0) {
+            playListButtons[playingIndex].setBackgroundColor(Color.rgb(255, 0, 0));
         }
     }
 
