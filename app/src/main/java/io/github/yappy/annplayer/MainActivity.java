@@ -168,7 +168,15 @@ public class MainActivity extends AppCompatActivity {
     private void loadListFromSdCardBh() {
         // 共有 Music ディレクトリ
         File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        File[] files = musicDir.listFiles((f) -> f.isFile() && f.getName().endsWith(".mp3"));
+        File[] files = musicDir.listFiles((f) -> {
+            if (f.isFile()) {
+                String name = f.getName().toLowerCase();
+                return name.endsWith(".wav") || name.endsWith(".mp3");
+            }
+            else {
+                return false;
+            }
+        });
         // エラーの場合 null (おそらくパーミッションエラー)
         if (files == null) {
             showToast("Read music dir error");
