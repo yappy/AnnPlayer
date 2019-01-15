@@ -1,51 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- ルート 内容物は重ねて表示 -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- 曲選択ボタンを入れる縦スクロール可能ビュー  -->
         <ScrollView
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
+            <!-- この縦リニアレイアウトにプログラムから入れる -->
             <LinearLayout
                 android:id="@+id/list_area"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             </LinearLayout>
-
         </ScrollView>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab1"
-            android:clickable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_media_play"
+        <!--
+        Play/Stop ボタン
+        layout_width/height: サイズ
+        layout_marginRight/Bottom: 右下からいくらずつ離すか
+        src: 画像リソース
+        scaleType: 拡大設定
+        background: 背景色(colors.xml 参照)
+        padding: ボタンの中での余白 画像が拡大しすぎるのを防ぐ
+        -->
+        <ImageButton
+            android:id="@+id/buttonPlay"
+            android:layout_width="128dp"
+            android:layout_height="96dp"
             android:layout_gravity="right|bottom"
             android:layout_marginRight="16dp"
-            android:layout_marginBottom="96dp"
-            app:fabCustomSize="64dp"/>
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab2"
-            android:clickable="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_media_pause"
+            android:layout_marginBottom="128dp"
+            android:src="@android:drawable/ic_media_play"
+            android:scaleType="fitCenter"
+            android:background="@color/colorPlayStop"
+            android:padding="16dp"/>
+        <ImageButton
+            android:id="@+id/buttonStop"
+            android:layout_width="128dp"
+            android:layout_height="96dp"
             android:layout_gravity="right|bottom"
             android:layout_marginRight="16dp"
             android:layout_marginBottom="16dp"
-            app:fabCustomSize="64dp"/>
+            android:src="@android:drawable/ic_media_pause"
+            android:scaleType="fitCenter"
+            android:background="@color/colorPlayStop"
+            android:padding="16dp"/>
 
     </FrameLayout>
 

@@ -21,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
@@ -46,13 +47,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // 再生停止ボタンのクリックイベント設定
-        FloatingActionButton playButton = findViewById(R.id.fab1);
+        ImageButton playButton = findViewById(R.id.buttonPlay);
         playButton.setOnClickListener((view) -> {
             if (selectedIndex >= 0) {
                 play(selectedIndex);
             }
         });
-        FloatingActionButton stopButton = findViewById(R.id.fab2);
+        ImageButton stopButton = findViewById(R.id.buttonStop);
         stopButton.setOnClickListener((view) -> {
             stop();
         });
