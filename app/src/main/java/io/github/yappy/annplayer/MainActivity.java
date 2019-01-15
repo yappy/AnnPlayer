@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -109,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
             selectedIndex = (playedIndex + 1) % musicFiles.length;
             playedIndex = -1;
             updateButtonColors();
+            scrollToSelected();
         });
         mediaPlayer.setOnErrorListener((mp, what, extra) -> {
             playedIndex = -1;
@@ -199,11 +201,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // n 番目のボタンクリックイベント
     private void onSelectList(int n) {
         selectedIndex = n;
         updateButtonColors();
+        scrollToSelected();
     }
 
+    // selectedIndex と playedIndex をボタンの色に反映する
     private void updateButtonColors() {
         for (Button button : playListButtons) {
             button.setBackgroundColor(android.R.drawable.btn_default);
@@ -214,6 +219,22 @@ public class MainActivity extends AppCompatActivity {
         if (playedIndex >= 0) {
             playListButtons[playedIndex].setBackgroundColor(Color.rgb(255, 0, 0));
         }
+    }
+
+    // n番目のボタンがスクロールビューの中央付近に来るようスクロールする
+    private void scrollToSelected() {
+        if (selectedIndex < 0) {
+            return;
+        }
+        ScrollView scrollView = findViewById(R.id.scrollView);
+        View content = scrollView.getChildAt(0);
+        // 中心 y 座標はスクロールビューの高さの半分
+        int center = scrollView.getHeight() / 2;
+        // 中身の高さの (index+1 / 全ボタン数) の座標を狙う
+        int y = content.getHeight() * (selectedIndex + 1) / playListButtons.length;
+        // そのままだと狙った座標がスクロールビューの一番上に来てしまうので
+        // スクロールビューの高さの半分だけ上に戻す
+        scrollView.smoothScrollTo(0, y - center);
     }
 
     // バージョン情報ダイアログ
