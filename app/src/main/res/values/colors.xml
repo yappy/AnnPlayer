@@ -3,6 +3,11 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+
+    <!-- リストアイテムの色 -->
+    <color name="colorSelected">#FF8080</color>
+    <color name="colorPlaying">#FF0000</color>
+
     <!-- 再生停止ボタンの色 ARGB で透過率も指定できる -->
-    <color name="colorPlayStop">#C032cd32</color>
+    <color name="colorPlayStop">#C032CD32</color>
 </resources>

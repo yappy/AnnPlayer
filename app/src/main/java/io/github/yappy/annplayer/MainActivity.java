@@ -231,10 +231,12 @@ public class MainActivity extends AppCompatActivity {
             button.setBackgroundColor(android.R.drawable.btn_default);
         }
         if (selectedIndex >= 0) {
-            playListButtons[selectedIndex].setBackgroundColor(Color.rgb(255, 128, 128));
+            playListButtons[selectedIndex].setBackgroundColor(
+                    ContextCompat.getColor(this, R.color.colorSelected));
         }
         if (playingIndex >= 0) {
-            playListButtons[playingIndex].setBackgroundColor(Color.rgb(255, 0, 0));
+            playListButtons[playingIndex].setBackgroundColor(
+                    ContextCompat.getColor(this, R.color.colorPlaying));
         }
     }
 
