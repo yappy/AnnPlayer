@@ -25,16 +25,23 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    // State keys
+    private static final String STATE_SELECTED_INDEX = "selectedIndex";
+    private static final String STATE_PLAYING_INDEX = "playingIndex";
+    private static final String STATE_PLAYING_POSITION = "playingPosition";
 
     // Music dir から音声リストを読み出す
     private static final int PERM_REQ_READ_MUSIC_LIST = 1;
 
     private MediaPlayer mediaPlayer = null;
-    private File[] musicFiles;
-    private Button[] playListButtons;
+    private List<File> musicFileList = new ArrayList<>();
+    private List<Button> buttonList = new ArrayList<>();
     private int selectedIndex = -1;
     private int playingIndex = -1;
 
@@ -48,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         ImageButton playButton = findViewById(R.id.buttonPlay);
         playButton.setOnClickListener((view) -> {
             if (selectedIndex >= 0) {
-                play(selectedIndex);
+                play(selectedIndex, 0);
             }
         });
         ImageButton stopButton = findViewById(R.id.buttonStop);
@@ -57,6 +64,43 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loadListFromSdCard();
+    }
+
+    // アクティビティが破棄される前
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_SELECTED_INDEX, selectedIndex);
+        outState.putInt(STATE_PLAYING_INDEX, playingIndex);
+
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            int msec = mediaPlayer.getCurrentPosition();
+            mediaPlayer.release();
+            mediaPlayer = null;
+            outState.putInt(STATE_PLAYING_POSITION, msec);
+        }
+        else {
+            outState.putInt(STATE_PLAYING_POSITION, 0);
+        }
+
+        super.onSaveInstanceState(outState);
+    }
+
+    // 破棄されたアクティビティが復帰した
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // ファイルリストは読み直しているので可能な場合のみ選択インデックスを復元する
+        int tmpSelectedIndex = savedInstanceState.getInt(STATE_SELECTED_INDEX);
+        if (tmpSelectedIndex < musicFileList.size()) {
+            onSelectList(tmpSelectedIndex);
+        }
+        int tmpPlayingIndex = savedInstanceState.getInt(STATE_PLAYING_INDEX);
+        if (tmpPlayingIndex >= 0 && tmpPlayingIndex < musicFileList.size()) {
+            int msec = savedInstanceState.getInt(STATE_PLAYING_POSITION);
+            play(tmpPlayingIndex, msec);
+        }
     }
 
     // メニューの生成タイミング
@@ -103,17 +147,17 @@ public class MainActivity extends AppCompatActivity {
 
     // 再生ボタンクリックイベント
     // 0 <= n < list size
-    private void play(int n) {
+    private void play(int n, int msec) {
         stop();
 
-        mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
+        mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFileList.get(n)));
         if (mediaPlayer == null) {
             showToast(getResources().getString(R.string.msg_play_error));
             return;
         }
         // 再生完了イベント
         mediaPlayer.setOnCompletionListener(mp -> {
-            selectedIndex = (playingIndex + 1) % musicFiles.length;
+            selectedIndex = (playingIndex + 1) % musicFileList.size();
             playingIndex = -1;
             updateButtonColors();
             scrollToSelected();
@@ -125,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
             showToast(getResources().getString(R.string.msg_play_error));
             return true;
         });
+        mediaPlayer.seekTo(msec);
         mediaPlayer.start();
 
         playingIndex = n;
@@ -143,6 +188,8 @@ public class MainActivity extends AppCompatActivity {
 
     // SD カードの内容を確認して UI に反映する
     private void loadListFromSdCard() {
+        musicFileList.clear();
+
         // マウント状態確認
         String state = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
@@ -184,7 +231,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         Arrays.sort(files);
-        musicFiles = files;
+        for (File file : files) {
+            musicFileList.add(file);
+        }
 
         // UI に反映
         initializeListArea();
@@ -194,22 +243,23 @@ public class MainActivity extends AppCompatActivity {
     private void initializeListArea() {
         LinearLayout area = findViewById(R.id.list_area);
         area.removeAllViews();
-        playListButtons = new Button[musicFiles.length];
+        buttonList.clear();
 
-        for (int i = 0; i < playListButtons.length; i++) {
+        for (int i = 0; i < musicFileList.size(); i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
-            button.setText(musicFiles[i].getName());
+            button.setText(musicFileList.get(i).getName());
             button.setTag(i);
             button.setOnClickListener((view) -> {
                 int n = (Integer) view.getTag();
                 onSelectList(n);
             });
             area.addView(inf);
-            playListButtons[i] = button;
+            buttonList.add(button);
         }
 
-        if (musicFiles.length > 0) {
+        // 存在するなら一番上を選択する
+        if (musicFileList.size() > 0) {
             onSelectList(0);
         }
         else {
@@ -218,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // n 番目のボタンクリックイベント
+    // -1 も可
     private void onSelectList(int n) {
         selectedIndex = n;
         updateButtonColors();
@@ -226,15 +277,15 @@ public class MainActivity extends AppCompatActivity {
 
     // selectedIndex と playingIndex をボタンの色に反映する
     private void updateButtonColors() {
-        for (Button button : playListButtons) {
+        for (Button button : buttonList) {
             button.setBackgroundColor(android.R.drawable.btn_default);
         }
         if (selectedIndex >= 0) {
-            playListButtons[selectedIndex].setBackgroundColor(
+            buttonList.get(selectedIndex).setBackgroundColor(
                     ContextCompat.getColor(this, R.color.colorSelected));
         }
         if (playingIndex >= 0) {
-            playListButtons[playingIndex].setBackgroundColor(
+            buttonList.get(playingIndex).setBackgroundColor(
                     ContextCompat.getColor(this, R.color.colorPlaying));
         }
     }
@@ -249,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
         // 中心 y 座標はスクロールビューの高さの半分
         int center = scrollView.getHeight() / 2;
         // 中身の高さの (index+1 / 全ボタン数) の座標を狙う
-        int y = content.getHeight() * (selectedIndex + 1) / playListButtons.length;
+        int y = content.getHeight() * (selectedIndex + 1) / buttonList.size();
         // そのままだと狙った座標がスクロールビューの一番上に来てしまうので
         // スクロールビューの高さの半分だけ上に戻す
         scrollView.smoothScrollTo(0, y - center);
