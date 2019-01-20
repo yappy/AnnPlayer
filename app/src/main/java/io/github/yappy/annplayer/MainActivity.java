@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         loadListFromSdCard();
     }
 
+    // メニューの生成タイミング
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    // メニュー選択イベント
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
