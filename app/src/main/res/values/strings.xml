@@ -1,6 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Announce Player</string>
     <string name="copyright">Copyright (C) yappy</string>
     <!-- app_name, copyright, VERSION_NAME, GIT_DATE, GIT_HASH -->
     <string name="about">"%s%n%n%s%n%nVersion: %s%n%s%n%s"</string>
+
+    <string name="menu_refresh">Refresh</string>
+    <string name="menu_about">Version</string>
+
+    <string name="msg_play_error">Play error</string>
+    <string name="msg_no_ext_storage">No external storage</string>
+    <string name="msg_music_dir_error">Cannot read music directory</string>
 </resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_refresh">再表示</string>
+    <string name="menu_about">バージョン情報</string>
+
+    <string name="msg_play_error">再生エラー</string>
+    <string name="msg_no_ext_storage">外部ストレージがありません</string>
+    <string name="msg_music_dir_error">音楽ディレクトリを読み取れません</string>
+</resources>
