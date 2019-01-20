@@ -7,4 +7,8 @@
 
     <string name="menu_refresh">Refresh</string>
     <string name="menu_about">Version</string>
+
+    <string name="msg_play_error">Play error</string>
+    <string name="msg_no_ext_storage">No external storage</string>
+    <string name="msg_music_dir_error">Cannot read music directory</string>
 </resources>

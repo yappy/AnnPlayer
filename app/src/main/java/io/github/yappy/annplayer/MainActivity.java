@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
         mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFiles[n]));
         if (mediaPlayer == null) {
-            showToast("An error occurred");
+            showToast(getResources().getString(R.string.msg_play_error));
             return;
         }
         // 再生完了イベント
@@ -124,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer.setOnErrorListener((mp, what, extra) -> {
             playingIndex = -1;
             updateButtonColors();
-            showToast("An error occurred");
+            showToast(getResources().getString(R.string.msg_play_error));
             return true;
         });
         mediaPlayer.start();
@@ -148,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         // マウント状態確認
         String state = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            showToast("SD card is not found");
+            showToast(getResources().getString(R.string.msg_no_ext_storage));
             return;
         }
 
@@ -182,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
         });
         // エラーの場合 null (おそらくパーミッションエラー)
         if (files == null) {
-            showToast("Read music dir error");
+            showToast(getResources().getString(R.string.msg_music_dir_error));
             return;
         }
         Arrays.sort(files);
