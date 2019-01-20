@@ -5,6 +5,5 @@
     android:id="@+id/list_button"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:height="64dp">
-
-</Button>
+    android:height="64dp"
+    android:textAllCaps="false" />
