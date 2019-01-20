@@ -45,7 +45,7 @@
             android:src="@android:drawable/ic_media_play"
             android:scaleType="fitCenter"
             android:background="@color/colorPlayStop"
-            android:padding="16dp"/>
+            android:padding="16dp" />
         <ImageButton
             android:id="@+id/buttonStop"
             android:layout_width="128dp"
@@ -56,7 +56,7 @@
             android:src="@android:drawable/ic_media_pause"
             android:scaleType="fitCenter"
             android:background="@color/colorPlayStop"
-            android:padding="16dp"/>
+            android:padding="16dp" />
 
     </FrameLayout>
 
