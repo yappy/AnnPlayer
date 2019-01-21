@@ -66,27 +66,7 @@ public class MainActivity extends AppCompatActivity {
         loadListFromSdCard();
     }
 
-    // アクティビティが破棄される前
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(STATE_SELECTED_INDEX, selectedIndex);
-        outState.putInt(STATE_PLAYING_INDEX, playingIndex);
-
-        if (mediaPlayer != null) {
-            mediaPlayer.pause();
-            int msec = mediaPlayer.getCurrentPosition();
-            mediaPlayer.release();
-            mediaPlayer = null;
-            outState.putInt(STATE_PLAYING_POSITION, msec);
-        }
-        else {
-            outState.putInt(STATE_PLAYING_POSITION, 0);
-        }
-
-        super.onSaveInstanceState(outState);
-    }
-
-    // 破棄されたアクティビティが復帰した
+    // 破棄されたアクティビティが復帰した場合、onCreate より後
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
@@ -96,11 +76,47 @@ public class MainActivity extends AppCompatActivity {
         if (tmpSelectedIndex < musicFileList.size()) {
             onSelectList(tmpSelectedIndex);
         }
+        // 再生中だった場合も可能な場合のみその場所から再生開始する
         int tmpPlayingIndex = savedInstanceState.getInt(STATE_PLAYING_INDEX);
         if (tmpPlayingIndex >= 0 && tmpPlayingIndex < musicFileList.size()) {
             int msec = savedInstanceState.getInt(STATE_PLAYING_POSITION);
             play(tmpPlayingIndex, msec);
         }
+    }
+
+    // バックグラウンドへ移動した時
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+        }
+    }
+
+    // フォアグラウンドになった時(起動時も含む)
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+        }
+    }
+
+    // アクティビティが破棄される(かもしれない)前
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(STATE_SELECTED_INDEX, selectedIndex);
+        outState.putInt(STATE_PLAYING_INDEX, playingIndex);
+
+        if (mediaPlayer != null) {
+            int msec = mediaPlayer.getCurrentPosition();
+            outState.putInt(STATE_PLAYING_POSITION, msec);
+        }
+        else {
+            outState.putInt(STATE_PLAYING_POSITION, 0);
+        }
+
+        super.onSaveInstanceState(outState);
     }
 
     // メニューの生成タイミング
