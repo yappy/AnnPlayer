@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Announce Player</string>
+    <string name="copyright">Copyright (C) yappy</string>
+    <!-- app_name, copyright, VERSION_NAME, GIT_DATE, GIT_HASH -->
+    <string name="about">"%s%n%n%s%n%nVersion: %s%n%s%n%s"</string>
+
     <string name="menu_refresh">再表示</string>
     <string name="menu_about">バージョン情報</string>
 
