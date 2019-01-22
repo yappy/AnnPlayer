@@ -1,7 +1,13 @@
 # AnnPlayer
 
+master:
 [![Build Status](https://travis-ci.org/yappy/AnnPlayer.svg?branch=master)](https://travis-ci.org/yappy/AnnPlayer)
 
+## 自動ビルド
+Github に変更を push すると(ブランチを問わず) Travis CI でビルドが走ります。
+ステータスは上記の build ボタンのリンクをクリック。
+タグを push するとビルドの後、さらにパッケージを Github releases のところに
+自動でアップロードします。
 
 ## 罠
 ### パッケージがインストールできない
