@@ -9,5 +9,6 @@
     <color name="colorPlaying">#FF0000</color>
 
     <!-- 再生停止ボタンの色 ARGB で透過率も指定できる -->
-    <color name="colorPlayStop">#C032CD32</color>
+    <color name="colorPlay">#C032CD32</color>
+    <color name="colorStop">#C0ff5192</color>
 </resources>
