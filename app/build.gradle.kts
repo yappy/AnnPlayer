@@ -3,13 +3,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
+    namespace = "io.github.yappy.annplayer"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "io.github.yappy.annplayer"
         minSdk = 22
         targetSdk = 36
         versionCode = 1
