@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
     // パーミッション要求の結果
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERM_REQ_READ_MUSIC_LIST: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
