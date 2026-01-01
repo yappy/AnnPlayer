@@ -9,11 +9,11 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.DialogFragment;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -130,16 +130,16 @@ public class MainActivity extends AppCompatActivity {
     // メニュー選択イベント
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_refresh:
-                stop();
-                loadListFromSdCard();
-                return true;
-            case R.id.menu_about:
-                new AboutDialog().show(getSupportFragmentManager(), "About");
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == R.id.menu_refresh) {
+            stop();
+            loadListFromSdCard();
+            return true;
+        } else if (id == R.id.menu_about) {
+            new AboutDialog().show(getSupportFragmentManager(), "About");
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 
