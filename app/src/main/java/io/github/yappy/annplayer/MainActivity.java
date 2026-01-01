@@ -130,16 +130,16 @@ public class MainActivity extends AppCompatActivity {
     // メニュー選択イベント
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_refresh:
-                stop();
-                loadListFromSdCard();
-                return true;
-            case R.id.menu_about:
-                new AboutDialog().show(getSupportFragmentManager(), "About");
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == R.id.menu_refresh) {
+            stop();
+            loadListFromSdCard();
+            return true;
+        } else if (id == R.id.menu_about) {
+            new AboutDialog().show(getSupportFragmentManager(), "About");
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 
