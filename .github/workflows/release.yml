@@ -24,6 +24,7 @@ jobs:
       - name: Extract release info
         id: metadata
         run: |
+          echo "title=${{github.ref_name}}" >> $GITHUB_OUTPUT
           echo "title=$(git tag -l --format '%(subject)' ${{github.ref_name}})" >> $GITHUB_OUTPUT
           echo "release_note<<EOF" >> $GITHUB_OUTPUT
           git tag -l --format '%(contents:body)' ${{github.ref_name}} >> $GITHUB_OUTPUT
