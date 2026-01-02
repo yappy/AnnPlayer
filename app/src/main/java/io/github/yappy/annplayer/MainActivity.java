@@ -44,10 +44,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String STATE_PLAYING_POSITION = "playingPosition";
 
     private MediaPlayer mediaPlayer = null;
-    private final List<Uri> musicFileList = new ArrayList<>();
+    private final List<MusicElement> musicFileList = new ArrayList<>();
     private final List<Button> buttonList = new ArrayList<>();
     private int selectedIndex = -1;
     private int playingIndex = -1;
+
+    record MusicElement(String name, Uri uri) {
+    }
 
     private void log(String msg) {
         Log.i(TAG, msg);
@@ -135,8 +138,7 @@ public class MainActivity extends AppCompatActivity {
         if (mediaPlayer != null) {
             int msec = mediaPlayer.getCurrentPosition();
             outState.putInt(STATE_PLAYING_POSITION, msec);
-        }
-        else {
+        } else {
             outState.putInt(STATE_PLAYING_POSITION, 0);
         }
 
@@ -180,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
     private void play(int n, int msec) {
         stop();
 
-        mediaPlayer = MediaPlayer.create(this, musicFileList.get(n));
+        mediaPlayer = MediaPlayer.create(this, musicFileList.get(n).uri());
         if (mediaPlayer == null) {
             showToast(getResources().getString(R.string.msg_play_error));
             return;
@@ -224,15 +226,15 @@ public class MainActivity extends AppCompatActivity {
         musicFileList.clear();
 
         var resolver = getContentResolver();
-        String[] projection = new String[] {
+        String[] projection = new String[]{
             MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.RELATIVE_PATH,
+            //MediaStore.Audio.Media.RELATIVE_PATH,
             MediaStore.Audio.Media.DISPLAY_NAME,
         };
 
         for (String volume : MediaStore.getExternalVolumeNames(this)) {
             Uri contentUri = MediaStore.Audio.Media.getContentUri(volume);
-            log("find volume: " + contentUri);
+            log("volume: " + contentUri);
             try (Cursor cursor = resolver.query(contentUri, projection, null, null, null)) {
                 if (cursor == null) {
                     continue;
@@ -242,12 +244,13 @@ public class MainActivity extends AppCompatActivity {
                 int colDisplayName = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
                 while (cursor.moveToNext()) {
                     long id = cursor.getLong(colId);
-                    String relativePath = cursor.getString(colRelativePath);
+                    //String relativePath = cursor.getString(colRelativePath);
                     String displayName = cursor.getString(colDisplayName);
 
                     Uri uri = ContentUris.withAppendedId(contentUri, id);
-                    log("find audio: " + uri);
-                    musicFileList.add(uri);
+                    log("  audio: " + displayName);
+                    log("  " + uri);
+                    musicFileList.add(new MusicElement(displayName, uri));
                 }
             }
         }
@@ -265,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < musicFileList.size(); i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
-            button.setText(musicFileList.get(i).getLastPathSegment());
+            button.setText(musicFileList.get(i).name());
             button.setTag(i);
             button.setOnClickListener((view) -> {
                 int n = (Integer) view.getTag();
@@ -278,8 +281,7 @@ public class MainActivity extends AppCompatActivity {
         // 存在するなら一番上を選択する
         if (!musicFileList.isEmpty()) {
             onSelectList(0);
-        }
-        else {
+        } else {
             onSelectList(-1);
         }
     }
@@ -299,11 +301,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if (selectedIndex >= 0) {
             buttonList.get(selectedIndex).setBackgroundColor(
-                    ContextCompat.getColor(this, R.color.colorSelected));
+                ContextCompat.getColor(this, R.color.colorSelected));
         }
         if (playingIndex >= 0) {
             buttonList.get(playingIndex).setBackgroundColor(
-                    ContextCompat.getColor(this, R.color.colorPlaying));
+                ContextCompat.getColor(this, R.color.colorPlaying));
         }
     }
 
