@@ -1,17 +1,22 @@
 # AnnPlayer
 
-master:
-[![Build Status](https://travis-ci.org/yappy/AnnPlayer.svg?branch=master)](https://travis-ci.org/yappy/AnnPlayer)
+[![Android CI](https://github.com/yappy/AnnPlayer/actions/workflows/android.yml/badge.svg)](https://github.com/yappy/AnnPlayer/actions/workflows/android.yml)
+[![Release](https://github.com/yappy/AnnPlayer/actions/workflows/release.yml/badge.svg)](https://github.com/yappy/AnnPlayer/actions/workflows/release.yml)
+
+[Technical Note](./technote.md)
 
 ## 自動ビルド
+
 Github に変更を push すると(ブランチを問わず) Travis CI でビルドが走ります。
 ステータスは上記の build ボタンのリンクをクリック。
 タグを push するとビルドの後、さらにパッケージを Github releases のところに
 自動でアップロードします。
 
 ## 罠
+
 ### パッケージがインストールできない
-https://stackoverflow.com/questions/25274296/adb-install-fails-with-install-failed-test-only
+
+<https://stackoverflow.com/questions/25274296/adb-install-fails-with-install-failed-test-only>
 
 `adb install app-release.apk` とすると `INSTALL_FAILED_TEST_ONLY` で失敗している。
 
