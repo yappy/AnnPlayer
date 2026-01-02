@@ -7,10 +7,13 @@
 
 ## 自動ビルド
 
-Github に変更を push すると(ブランチを問わず) Travis CI でビルドが走ります。
-ステータスは上記の build ボタンのリンクをクリック。
+Github に変更を push すると(ブランチを問わず) GitHub Actions でビルドが走ります。
+
 タグを push するとビルドの後、さらにパッケージを Github releases のところに
 自動でアップロードします。
+
+リリースページ:
+<https://github.com/yappy/AnnPlayer/releases>
 
 ## 罠
 
