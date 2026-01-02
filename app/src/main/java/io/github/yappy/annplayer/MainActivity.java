@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
                     continue;
                 }
                 int colId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
-                int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
+                //int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
                 int colDisplayName = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
                 while (cursor.moveToNext()) {
                     long id = cursor.getLong(colId);
