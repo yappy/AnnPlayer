@@ -26,8 +26,8 @@ jobs:
         run: |
           echo "title=${{github.ref_name}}" >> $GITHUB_OUTPUT
           echo "release_note<<EOF" >> $GITHUB_OUTPUT
-          git tag -l --format '%(subject)%n%n%(contents:body)' ${{github.ref_name}} >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT          
+          git tag -l --format '%(subject)%0a%0a%(contents:body)' ${{github.ref_name}} >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         env:
