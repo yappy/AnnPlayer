@@ -49,7 +49,13 @@ public class MainActivity extends AppCompatActivity {
     private int selectedIndex = -1;
     private int playingIndex = -1;
 
-    record MusicElement(String name, Uri uri) {
+    private static class MusicElement {
+        public String name;
+        public Uri uri;
+        public MusicElement(String name, Uri uri) {
+            this.name = name;
+            this.uri=uri;
+        }
     }
 
     private void log(String msg) {
@@ -182,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     private void play(int n, int msec) {
         stop();
 
-        mediaPlayer = MediaPlayer.create(this, musicFileList.get(n).uri());
+        mediaPlayer = MediaPlayer.create(this, musicFileList.get(n).uri);
         if (mediaPlayer == null) {
             showToast(getResources().getString(R.string.msg_play_error));
             return;
@@ -268,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < musicFileList.size(); i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
-            button.setText(musicFileList.get(i).name());
+            button.setText(musicFileList.get(i).name);
             button.setTag(i);
             button.setOnClickListener((view) -> {
                 int n = (Integer) view.getTag();
