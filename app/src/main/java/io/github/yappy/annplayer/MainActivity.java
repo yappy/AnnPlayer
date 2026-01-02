@@ -1,19 +1,22 @@
 package io.github.yappy.annplayer;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.pm.PackageManager;
+import android.content.ContentUris;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -24,26 +27,37 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    // Log
+    private static final String TAG = MainActivity.class.getName();
+    private final StringBuilder logBuffer = new StringBuilder();
 
     // State keys
     private static final String STATE_SELECTED_INDEX = "selectedIndex";
     private static final String STATE_PLAYING_INDEX = "playingIndex";
     private static final String STATE_PLAYING_POSITION = "playingPosition";
 
-    // Music dir から音声リストを読み出す
-    private static final int PERM_REQ_READ_MUSIC_LIST = 1;
-
     private MediaPlayer mediaPlayer = null;
-    private List<File> musicFileList = new ArrayList<>();
-    private List<Button> buttonList = new ArrayList<>();
+    private final List<Uri> musicFileList = new ArrayList<>();
+    private final List<Button> buttonList = new ArrayList<>();
     private int selectedIndex = -1;
     private int playingIndex = -1;
+
+    private void log(String msg) {
+        Log.i(TAG, msg);
+        logBuffer.append(msg);
+        logBuffer.append('\n');
+    }
+
+    private void clearLog() {
+        logBuffer.setLength(0);
+    }
 
     // 初期化時に一度だけ呼ばれる
     @Override
@@ -63,12 +77,12 @@ public class MainActivity extends AppCompatActivity {
             stop();
         });
 
-        loadListFromSdCard();
+        loadListFromStorage();
     }
 
     // 破棄されたアクティビティが復帰した場合、onCreate より後
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
         // ファイルリストは読み直しているので可能な場合のみ選択インデックスを復元する
@@ -143,27 +157,16 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.menu_refresh) {
             stop();
-            loadListFromSdCard();
+            loadListFromStorage();
+            return true;
+        } else if (id == R.id.menu_log) {
+            new SimpleDialog(logBuffer.toString()).show(getSupportFragmentManager(), "Log");
             return true;
         } else if (id == R.id.menu_about) {
             new AboutDialog().show(getSupportFragmentManager(), "About");
             return true;
         } else {
             return super.onOptionsItemSelected(item);
-        }
-    }
-
-    // パーミッション要求の結果
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case PERM_REQ_READ_MUSIC_LIST: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    loadListFromSdCardBh();
-                }
-                break;
-            }
         }
     }
 
@@ -177,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
     private void play(int n, int msec) {
         stop();
 
-        mediaPlayer = MediaPlayer.create(this, Uri.fromFile(musicFileList.get(n)));
+        mediaPlayer = MediaPlayer.create(this, musicFileList.get(n));
         if (mediaPlayer == null) {
             showToast(getResources().getString(R.string.msg_play_error));
             return;
@@ -213,53 +216,40 @@ public class MainActivity extends AppCompatActivity {
         updateButtonColors();
     }
 
-    // SD カードの内容を確認して UI に反映する
-    private void loadListFromSdCard() {
+    // 音声ファイル一覧を列挙する
+    private void loadListFromStorage() {
+        clearLog();
+        log("Start scan");
+
         musicFileList.clear();
 
-        // マウント状態確認
-        String state = Environment.getExternalStorageState();
-        if (!Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            showToast(getResources().getString(R.string.msg_no_ext_storage));
-            return;
-        }
+        var resolver = getContentResolver();
+        String[] projection = new String[] {
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.RELATIVE_PATH,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+        };
 
-        // 外部ストレージの read permission を許可されてから後半処理する
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED) {
-            // ダイアログを出して許可を得る (出ない場合もある)
-            // 許可されたら onRequestPermissionsResult コールバックから loadListFromSdCardBh() を呼ぶ
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERM_REQ_READ_MUSIC_LIST);
-            return;
-        }
-        else {
-            // 許可されているので普通に後半を呼ぶ
-            loadListFromSdCardBh();
-        }
-    }
+        for (String volume : MediaStore.getExternalVolumeNames(this)) {
+            Uri contentUri = MediaStore.Audio.Media.getContentUri(volume);
+            log("find volume: " + contentUri);
+            try (Cursor cursor = resolver.query(contentUri, projection, null, null, null)) {
+                if (cursor == null) {
+                    continue;
+                }
+                int colId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
+                int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
+                int colDisplayName = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(colId);
+                    String relativePath = cursor.getString(colRelativePath);
+                    String displayName = cursor.getString(colDisplayName);
 
-    // 後半 (bottom half)
-    private void loadListFromSdCardBh() {
-        // 共有 Music ディレクトリ
-        File musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
-        File[] files = musicDir.listFiles((f) -> {
-            if (f.isFile()) {
-                String name = f.getName().toLowerCase();
-                return name.endsWith(".wav") || name.endsWith(".mp3");
+                    Uri uri = ContentUris.withAppendedId(contentUri, id);
+                    log("find audio: " + uri);
+                    musicFileList.add(uri);
+                }
             }
-            else {
-                return false;
-            }
-        });
-        // エラーの場合 null (おそらくパーミッションエラー)
-        if (files == null) {
-            showToast(getResources().getString(R.string.msg_music_dir_error));
-            return;
-        }
-        Arrays.sort(files);
-        for (File file : files) {
-            musicFileList.add(file);
         }
 
         // UI に反映
@@ -275,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < musicFileList.size(); i++) {
             View inf = getLayoutInflater().inflate(R.layout.list_button, null);
             Button button = inf.findViewById(R.id.list_button);
-            button.setText(musicFileList.get(i).getName());
+            button.setText(musicFileList.get(i).getLastPathSegment());
             button.setTag(i);
             button.setOnClickListener((view) -> {
                 int n = (Integer) view.getTag();
@@ -286,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // 存在するなら一番上を選択する
-        if (musicFileList.size() > 0) {
+        if (!musicFileList.isEmpty()) {
             onSelectList(0);
         }
         else {
@@ -333,24 +323,51 @@ public class MainActivity extends AppCompatActivity {
         scrollView.smoothScrollTo(0, y - center);
     }
 
-    // バージョン情報ダイアログ
-    public static class AboutDialog extends DialogFragment {
+    public static class SimpleDialog extends DialogFragment {
+        private String text;
+
+        public SimpleDialog() {
+            this("");
+        }
+
+        public SimpleDialog(String text) {
+            this.text = text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+
+        @NonNull
         @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            Resources res = getResources();
-            String text = res.getString(R.string.about,
-                    res.getString(R.string.app_name),
-                    res.getString(R.string.copyright),
-                    BuildConfig.VERSION_NAME,
-                    BuildConfig.GIT_DATE,
-                    BuildConfig.GIT_HASH);
+        public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+            super.onCreateDialog(savedInstanceState);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setMessage(text)
-                    .setPositiveButton("OK", (dialog, id) -> {
-                        // OK
-                    });
+                .setPositiveButton("OK", (dialog, id) -> {
+                    // OK
+                });
             return builder.create();
+        }
+    }
+
+    // バージョン情報ダイアログ
+    public static class AboutDialog extends SimpleDialog {
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+            setText(createAboutText(getResources()));
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        private static String createAboutText(Resources res) {
+            return res.getString(R.string.about,
+                res.getString(R.string.app_name),
+                res.getString(R.string.copyright),
+                BuildConfig.VERSION_NAME,
+                BuildConfig.GIT_DATE,
+                BuildConfig.GIT_HASH);
         }
     }
 

@@ -32,7 +32,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.yappy.annplayer"
-        minSdk = 22
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         // versionName is derived from git describe
