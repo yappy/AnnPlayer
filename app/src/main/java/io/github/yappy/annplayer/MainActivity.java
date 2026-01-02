@@ -84,6 +84,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // 破棄される時
+    @Override
+    protected void onDestroy() {
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+        super.onDestroy();
+    }
+
     // バックグラウンドへ移動した時
     @Override
     protected void onPause() {
