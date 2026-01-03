@@ -228,28 +228,26 @@ public class MainActivity extends AppCompatActivity {
         var resolver = getContentResolver();
         String[] projection = new String[]{
             MediaStore.Audio.Media._ID,
-            //MediaStore.Audio.Media.RELATIVE_PATH,
+            MediaStore.Audio.Media.RELATIVE_PATH,
             MediaStore.Audio.Media.DISPLAY_NAME,
         };
 
-        for (String volume : MediaStore.getExternalVolumeNames(this)) {
-            Uri contentUri = MediaStore.Audio.Media.getContentUri(volume);
-            log("volume: " + contentUri);
-            try (Cursor cursor = resolver.query(contentUri, projection, null, null, null)) {
-                if (cursor == null) {
-                    continue;
-                }
+        // This synthetic volume provides a merged view of all media across
+        // all currently attached external storage devices.
+        Uri contentUri = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+        try (Cursor cursor = resolver.query(contentUri, projection, null, null, null)) {
+            if (cursor != null) {
                 int colId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
-                //int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
+                int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
                 int colDisplayName = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME);
                 while (cursor.moveToNext()) {
                     long id = cursor.getLong(colId);
-                    //String relativePath = cursor.getString(colRelativePath);
+                    String relativePath = cursor.getString(colRelativePath);
                     String displayName = cursor.getString(colDisplayName);
 
                     Uri uri = ContentUris.withAppendedId(contentUri, id);
-                    log("  audio: " + displayName);
-                    log("  " + uri);
+                    log("audio: " + displayName);
+                    log(relativePath + " - " + uri);
                     musicFileList.add(new MusicElement(displayName, uri));
                 }
             }
