@@ -2,6 +2,8 @@ package io.github.yappy.annplayer;
 
 import android.Manifest;
 import android.content.ContentUris;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.MediaPlayer;
@@ -15,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -23,11 +26,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.PermissionChecker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     // Log
@@ -38,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String STATE_SELECTED_INDEX = "selectedIndex";
     private static final String STATE_PLAYING_INDEX = "playingIndex";
     private static final String STATE_PLAYING_POSITION = "playingPosition";
+
+    private static final String PREF_KEY_FILTER = "filter";
+    private static final String FILTER_DEFAULT = ".wav";
 
     private MediaPlayer mediaPlayer = null;
     private final List<MusicElement> musicFileList = new ArrayList<>();
@@ -154,18 +162,38 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.menu_refresh) {
-            stop();
-            loadListFromStorage();
+            reload();
+            return true;
+        } else if (id == R.id.menu_filter) {
+            Resources res = getResources();
+            SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+            EditText edit = new AppCompatEditText(this);
+            edit.setText(pref.getString(PREF_KEY_FILTER, FILTER_DEFAULT));
+            new AlertDialog.Builder(this)
+                .setTitle("Search Filter")
+                .setMessage(res.getString(R.string.msg_filter_input))
+                .setView(edit)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    String text = Objects.requireNonNull(edit.getText()).toString();
+                    pref.edit().putString(PREF_KEY_FILTER, text).apply();
+                    reload();
+                })
+                .setNegativeButton("Cancel", null)
+                .setNeutralButton("Set Default", (dialog, which) -> {
+                    pref.edit().putString(PREF_KEY_FILTER, FILTER_DEFAULT).apply();
+                    reload();
+                })
+                .show();
             return true;
         } else if (id == R.id.menu_log) {
-            new AlertDialog.Builder(MainActivity.this)
+            new AlertDialog.Builder(this)
                 .setTitle("Log")
                 .setMessage(logBuffer.toString())
                 .setPositiveButton("OK", null)
                 .show();
             return true;
         } else if (id == R.id.menu_about) {
-            new AlertDialog.Builder(MainActivity.this)
+            new AlertDialog.Builder(this)
                 .setTitle("About this application")
                 .setMessage(createAboutText())
                 .setPositiveButton("OK", null)
@@ -179,6 +207,12 @@ public class MainActivity extends AppCompatActivity {
     // Toast (short) を表示する
     private void showToast(String msg) {
         Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    // 再生を停止してリストを更新する
+    private void reload() {
+        stop();
+        loadListFromStorage();
     }
 
     // 再生ボタンクリックイベント
@@ -298,6 +332,14 @@ public class MainActivity extends AppCompatActivity {
     private void loadListFromStorageBody() {
         log("Start scan");
 
+        // SharedPreferences からフィルタを読み出して空白文字で split
+        SharedPreferences pref = getPreferences(Context.MODE_PRIVATE);
+        String filter_all = pref.getString(PREF_KEY_FILTER, FILTER_DEFAULT);
+        String[] filters = filter_all.split("\\s+");
+        for (String f : filters) {
+            log("filter: " + f);
+        }
+
         musicFileList.clear();
 
         var resolver = getContentResolver();
@@ -306,11 +348,13 @@ public class MainActivity extends AppCompatActivity {
             MediaStore.Audio.Media.RELATIVE_PATH,
             MediaStore.Audio.Media.DISPLAY_NAME,
         };
+        String order = MediaStore.Audio.Media.DISPLAY_NAME;
+
 
         // This synthetic volume provides a merged view of all media across
         // all currently attached external storage devices.
         Uri contentUri = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
-        try (Cursor cursor = resolver.query(contentUri, projection, null, null, null)) {
+        try (Cursor cursor = resolver.query(contentUri, projection, null, null, order)) {
             if (cursor != null) {
                 int colId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
                 int colRelativePath = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH);
@@ -323,7 +367,19 @@ public class MainActivity extends AppCompatActivity {
                     Uri uri = ContentUris.withAppendedId(contentUri, id);
                     log("audio: " + displayName);
                     log(relativePath + " - " + uri);
-                    musicFileList.add(new MusicElement(displayName, uri));
+                    boolean hit = false;
+                    for (String f : filters) {
+                        if (displayName.contains(f)) {
+                            hit = true;
+                            break;
+                        }
+                    }
+                    if (hit) {
+                        musicFileList.add(new MusicElement(displayName, uri));
+                        log("HIT");
+                    } else {
+                        log("NOT HIT");
+                    }
                 }
             }
         }
@@ -395,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
         int y = content.getHeight() * (selectedIndex + 1) / buttonList.size();
         // そのままだと狙った座標がスクロールビューの一番上に来てしまうので
         // スクロールビューの高さの半分だけ上に戻す
-        scrollView.smoothScrollTo(0, y - center);
+        scrollView.smoothScrollTo(0, Math.max(y - center, 0));
     }
 
     private String createAboutText() {
