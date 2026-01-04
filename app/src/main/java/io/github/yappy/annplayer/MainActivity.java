@@ -1,8 +1,6 @@
 package io.github.yappy.annplayer;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentUris;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -10,14 +8,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.content.PermissionChecker;
-import androidx.fragment.app.DialogFragment;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -30,10 +20,13 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.File;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.PermissionChecker;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -165,10 +158,18 @@ public class MainActivity extends AppCompatActivity {
             loadListFromStorage();
             return true;
         } else if (id == R.id.menu_log) {
-            new SimpleDialog(logBuffer.toString()).show(getSupportFragmentManager(), "Log");
+            new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Log")
+                .setMessage(logBuffer.toString())
+                .setPositiveButton("OK", null)
+                .show();
             return true;
         } else if (id == R.id.menu_about) {
-            new AboutDialog().show(getSupportFragmentManager(), "About");
+            new AlertDialog.Builder(MainActivity.this)
+                .setTitle("About this application")
+                .setMessage(createAboutText())
+                .setPositiveButton("OK", null)
+                .show();
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -388,53 +389,14 @@ public class MainActivity extends AppCompatActivity {
         scrollView.smoothScrollTo(0, y - center);
     }
 
-    // テキストと OK ボタンだけのダイアログ
-    public static class SimpleDialog extends DialogFragment {
-        private String text;
-
-        public SimpleDialog() {
-            this("");
-        }
-
-        public SimpleDialog(String text) {
-            this.text = text;
-        }
-
-        public void setText(String text) {
-            this.text = text;
-        }
-
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-            super.onCreateDialog(savedInstanceState);
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(text)
-                .setPositiveButton("OK", (dialog, id) -> {
-                    // OK
-                });
-            return builder.create();
-        }
-    }
-
-    // バージョン情報ダイアログ
-    public static class AboutDialog extends SimpleDialog {
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-            setText(createAboutText(getResources()));
-            return super.onCreateDialog(savedInstanceState);
-        }
-
-        private static String createAboutText(Resources res) {
-            return res.getString(R.string.about,
-                res.getString(R.string.app_name),
-                res.getString(R.string.copyright),
-                BuildConfig.VERSION_NAME,
-                BuildConfig.GIT_DATE,
-                BuildConfig.GIT_HASH);
-        }
+    private String createAboutText() {
+        Resources res = getResources();
+        return res.getString(R.string.about,
+            res.getString(R.string.app_name),
+            res.getString(R.string.copyright),
+            BuildConfig.VERSION_NAME,
+            BuildConfig.GIT_DATE,
+            BuildConfig.GIT_HASH);
     }
 
 }
