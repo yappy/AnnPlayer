@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("Permit to list sound files")
                 .setPositiveButton("OK", (dialog, which) -> {
                     log("OK button on UI");
-                    requestPermissions(required.toArray(String[]::new), 0);
+                    requestPermissions(required.toArray(new String[required.size()]), 0);
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> {
                     log("cancel button on UI");
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         } else {
             log("permission: not granted, do request");
-            requestPermissions(required.toArray(String[]::new), 0);
+            requestPermissions(required.toArray(new String[required.size()]), 0);
             return false;
         }
     }
