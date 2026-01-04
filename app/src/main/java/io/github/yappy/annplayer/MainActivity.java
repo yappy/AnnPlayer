@@ -1,5 +1,6 @@
 package io.github.yappy.annplayer;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ContentUris;
@@ -7,10 +8,12 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.PermissionChecker;
 import androidx.fragment.app.DialogFragment;
 import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -218,9 +221,71 @@ public class MainActivity extends AppCompatActivity {
         updateButtonColors();
     }
 
-    // 音声ファイル一覧を列挙する
+    // パーミッションを確認し、満たされているなら音声リストを更新する
+    // 満たされていないなら適切な UI を呼ぶ
     private void loadListFromStorage() {
         clearLog();
+
+        boolean already_granted;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // >= 33 (= Android 13 Tiramisu)
+            already_granted = checkPermissions(Manifest.permission.READ_MEDIA_AUDIO);
+        } else {
+            // < 33
+            already_granted = checkPermissions(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (already_granted) {
+            loadListFromStorageBody();
+        }
+    }
+
+    // パーミッションリストをチェックし、足りないものがあれば要求する
+    // すべて満たされているならば true を返す
+    // 満たされていないものがあれば要求画面を表示し、false を返す
+    // (onRequestPermissionsResult ハンドラで続きは処理する、requestCode はそこに渡される)
+    private boolean checkPermissions(String... perms) {
+        List<String> required = new ArrayList<>();
+        boolean shouldShowUI = false;
+        for (String perm : perms) {
+            int result = PermissionChecker.checkSelfPermission(this, perm);
+            if (result != PermissionChecker.PERMISSION_GRANTED) {
+                shouldShowUI = shouldShowUI || shouldShowRequestPermissionRationale(perm);
+                required.add(perm);
+            }
+        }
+
+        if (required.isEmpty()) {
+            log("permission: already granted");
+            return true;
+        } else if (shouldShowUI) {
+            // TODO: show UI
+            log("permission: not granted, show UI");
+            requestPermissions(required.toArray(String[]::new), 0);
+            return false;
+        } else {
+            log("permission: not granted, request");
+            requestPermissions(required.toArray(String[]::new), 0);
+            return false;
+        }
+    }
+
+    // requestPermissions の結果
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        for (int result : grantResults) {
+            if (result != PermissionChecker.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+        // リクエストがすべて許可された場合
+        loadListFromStorageBody();
+    }
+
+    // 音声ファイル一覧を列挙する
+    // (パーミッションが必要、無いと成功はするが結果が大幅に減る)
+    private void loadListFromStorageBody() {
         log("Start scan");
 
         musicFileList.clear();
@@ -254,11 +319,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // UI に反映
-        initializeListArea();
+        updateListArea();
     }
 
-    // リスト UI を更新初期化する
-    private void initializeListArea() {
+    // musicFileList で リスト UI を更新初期化する
+    private void updateListArea() {
         LinearLayout area = findViewById(R.id.list_area);
         area.removeAllViews();
         buttonList.clear();
@@ -323,6 +388,7 @@ public class MainActivity extends AppCompatActivity {
         scrollView.smoothScrollTo(0, y - center);
     }
 
+    // テキストと OK ボタンだけのダイアログ
     public static class SimpleDialog extends DialogFragment {
         private String text;
 
