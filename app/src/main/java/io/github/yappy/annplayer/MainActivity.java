@@ -259,12 +259,21 @@ public class MainActivity extends AppCompatActivity {
             log("permission: already granted");
             return true;
         } else if (shouldShowUI) {
-            // TODO: show UI
             log("permission: not granted, show UI");
-            requestPermissions(required.toArray(String[]::new), 0);
+            new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Permission Required")
+                .setMessage("Permit to list sound files")
+                .setPositiveButton("OK", (dialog, which) -> {
+                    log("OK button on UI");
+                    requestPermissions(required.toArray(String[]::new), 0);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    log("cancel button on UI");
+                })
+                .show();
             return false;
         } else {
-            log("permission: not granted, request");
+            log("permission: not granted, do request");
             requestPermissions(required.toArray(String[]::new), 0);
             return false;
         }
