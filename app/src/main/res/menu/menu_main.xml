@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/menu_refresh"
         android:title="@string/menu_refresh" />
+    <item android:id="@+id/menu_filter"
+        android:title="@string/menu_filter" />
+    <item android:id="@+id/menu_log"
+        android:title="@string/menu_log" />
     <item android:id="@+id/menu_about"
         android:title="@string/menu_about" />
 </menu>

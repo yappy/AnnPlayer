@@ -32,7 +32,7 @@ android {
 
     defaultConfig {
         applicationId = "io.github.yappy.annplayer"
-        minSdk = 22
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         // versionName is derived from git describe
@@ -65,8 +65,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         // Enable generation of BuildConfig fields
