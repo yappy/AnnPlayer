@@ -10,6 +10,8 @@
     <string name="menu_log">動作ログ</string>
     <string name="menu_about">バージョン情報</string>
 
+    <string name="msg_filter_input">検索フィルターを入力\nスペース区切りで複数入力可</string>
+
     <string name="msg_play_error">再生エラー</string>
     <string name="msg_no_ext_storage">外部ストレージがありません</string>
     <string name="msg_music_dir_error">音楽ディレクトリを読み取れません</string>
